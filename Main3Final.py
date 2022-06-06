@@ -1,9 +1,11 @@
 import os
+import random
+
 import pandas as pd
 import matplotlib.pyplot as ptl
 
 starting_point = 0
-
+forrandom = 60
 
 def lagrange_coefs(xlist: list, index: int, givenx: float):
     multres = 1.0
@@ -23,6 +25,39 @@ def lagrangefunc(x: float, xlist: list, ylist: list):
 
     return result
 
+# for random
+# uneven = [0]
+#         for j in range(0, 512, forrandom):
+#             if j < 512-forrandom:
+#                 ifAdded = True
+#                 while ifAdded:
+#                     valnew = random.randint(j, j+forrandom-1)
+#                     if valnew not in uneven:
+#                         uneven.append(valnew)
+#                         ifAdded = False
+#
+#         xmeasured = [float(data.iat[j, 0]) for j in range(len(data))]
+#         ymeasured = [float(data.iat[j, 1]) for j in range(len(data))]
+#
+#         xinterpolated = [float(data.iat[j, 0]) for j in range(0, uneven[len(uneven)-1]+1)]
+#         yinterpolated = [float(0) for _ in range(0, uneven[len(uneven)-1]+1)]
+#
+#         xlagrange = []
+#         ylagrange = []
+#
+#         for j in uneven:
+#             xlagrange.append(float(data.iat[j, 0]))
+#             ylagrange.append(float(data.iat[j, 1]))
+#             yinterpolated[j] = float(data.iat[j, 1])
+#
+#         jump = uneven[0]
+#         for j in range(len(yinterpolated)):
+#             if j != jump or j != len(yinterpolated) - 1:
+#                 yinterpolated[j] = lagrangefunc(xmeasured[j], xlagrange, ylagrange)
+#             else:
+#                 jump = uneven.index(jump)
+#                 jump = uneven[jump+1]
+#                 jump = ymeasured.index(jump)
 
 def lagrange(which: int):
     dir_list = os.listdir("./data")
@@ -34,29 +69,38 @@ def lagrange(which: int):
             newrow = pd.DataFrame({collist[0]: [collist[0]], collist[1]: [collist[1]]})
             data = pd.concat([newrow, data], ignore_index=True)
 
+        uneven = [0]
+        for j in range(0, 512, forrandom):
+            if j < 512-forrandom:
+                ifAdded = True
+                while ifAdded:
+                    valnew = random.randint(j, j+forrandom-1)
+                    if valnew not in uneven:
+                        uneven.append(valnew)
+                        ifAdded = False
+
         xmeasured = [float(data.iat[j, 0]) for j in range(len(data))]
         ymeasured = [float(data.iat[j, 1]) for j in range(len(data))]
 
-        yinterpolated = [float(0) for _ in range(len(data))]
+        xinterpolated = [float(data.iat[j, 0]) for j in range(0, uneven[len(uneven)-1]+1)]
+        yinterpolated = [float(0) for _ in range(0, uneven[len(uneven)-1]+1)]
 
         xlagrange = []
         ylagrange = []
 
-        for j in range(starting_point, (len(data)), which):
+        for j in uneven:
             xlagrange.append(float(data.iat[j, 0]))
             ylagrange.append(float(data.iat[j, 1]))
             yinterpolated[j] = float(data.iat[j, 1])
-            if j + which > (len(data) - 1):
-                xlagrange.append(float(data.iat[(len(data) - 1), 0]))
-                ylagrange.append(float(data.iat[(len(data) - 1), 1]))
-                yinterpolated[j] = float(data.iat[(len(data) - 1), 1])
 
-        jump = starting_point
+        jump = uneven[0]
         for j in range(len(yinterpolated)):
             if j != jump or j != len(yinterpolated) - 1:
                 yinterpolated[j] = lagrangefunc(xmeasured[j], xlagrange, ylagrange)
             else:
-                jump += which
+                jump = uneven.index(jump)
+                jump = uneven[jump+1]
+                jump = ymeasured.index(jump)
 
         fname = os.path.splitext(i)[0]
 
@@ -64,7 +108,7 @@ def lagrange(which: int):
         # ptl.yscale('log')
         ptl.plot(xmeasured, ymeasured, 'ro')
         ptl.plot(xlagrange, ylagrange, 'bo')
-        ptl.plot(xmeasured, yinterpolated, 'g')
+        ptl.plot(xinterpolated, yinterpolated, 'g')
         ptl.legend(['Pomierzone', 'Wybrane', 'Interpolowane'])
         ptl.xlabel("Droga przebyta [m]")
         ptl.ylabel("Wysokosc [m]")
@@ -118,7 +162,7 @@ def splinesforU(pointnum: int, xes: list):
 def LU(pointnum: int, xes: list):
     A = splinesforU(pointnum, xes)
     U = A
-    L = [[0 if i != j else 1 for j in range(len(A[0]))] for i in range(len(A))]
+    L = [[0.0 if i != j else 1.0 for j in range(len(A[0]))] for i in range(len(A))]
 
     for i in range(len(A) - 1):
 
@@ -139,6 +183,76 @@ def valofsplinefunc(leftend: float, coefs: list, point: float):
 
     return res
 
+# for random splain points
+# uneven = [0]
+#         for j in range(0, 512, forrandom):
+#             if j < 512-forrandom:
+#                 ifAdded = True
+#                 while ifAdded:
+#                     valnew = random.randint(j, j+forrandom-1)
+#                     if valnew not in uneven:
+#                         uneven.append(valnew)
+#                         ifAdded = False
+#
+#
+#         xsplines = [float(data.iat[j, 0]) for j in uneven]
+#         ysplines = [float(data.iat[j, 1]) for j in uneven]
+#
+#         lastindex = uneven[len(uneven)-1]
+#
+#         xinterpolated = [float(data.iat[j, 0]) for j in range(0, lastindex + 1)]
+#         yinterpolated = [0.0 for _ in range(0, lastindex + 1)]
+#
+#         for j in uneven:
+#             yinterpolated[j] = float(data.iat[j, 1])
+#
+#         points = [j for j in uneven]
+#         L, U = LU(len(points), xsplines)
+#
+#         b = []
+#         for j in range(4*(len(points)-1)):
+#             b.append(0)
+#
+#         b[0] = ysplines[0]
+#         b[1] = ysplines[1]
+#         for j in range(1, len(ysplines) - 1):
+#             b[4 * j] = ysplines[j]
+#             b[4 * j + 2] = ysplines[j+1]
+#
+#         y = [j for j in b]
+#
+#         for j in range(len(L)):
+#             for k in range(j):
+#                 y[j] -= L[j][k] * y[k]
+#             y[j] /= L[j][j]
+#
+#         x = [j for j in y]
+#
+#         for j in range(len(U) - 1, -1, -1):
+#             for k in range(j + 1, len(U)):
+#                 x[j] -= U[j][k] * x[k]
+#             x[j] /= U[j][j]
+#
+#         indexofleft = uneven[0]
+#         indexofright = uneven[1]
+#         indexofcoefs = 0
+#         coefsforfunc = [0.0, 0.0, 0.0, 0.0]
+#         for j in range(4):
+#             coefsforfunc[j] = x[4 * indexofcoefs + j]
+#         anew = True
+#
+#         for j in range(uneven[0] + 1, lastindex):
+#             if j == indexofright:
+#                 indexofleft = uneven[uneven.index(indexofleft)+1]
+#                 indexofright = uneven[uneven.index(indexofright)+1]
+#                 indexofcoefs += 1
+#                 anew = False
+#             else:
+#                 if not anew:
+#                     for k in range(4):
+#                         coefsforfunc[k] = x[4 * indexofcoefs + k]
+#                 yinterpolated[j - starting_point] = valofsplinefunc(xmeasured[indexofleft], coefsforfunc,
+#                                                                           xmeasured[j])
 
 def splines(gap: int):
     dir_list = os.listdir("./data")
@@ -156,11 +270,6 @@ def splines(gap: int):
 
         xsplines = [float(data.iat[j, 0]) for j in range(starting_point, 512, gap)]
         ysplines = [float(data.iat[j, 1]) for j in range(starting_point, 512, gap)]
-
-        print()
-        for j in range(starting_point, 512, gap):
-            print(ymeasured[j], " ", ysplines[int((j-starting_point)/gap)])
-        print()
 
         lastindex = starting_point
         while lastindex + gap <= 511:
@@ -236,5 +345,5 @@ def splines(gap: int):
         ptl.savefig("./imagessplains/" + fname + ".png")
 
 lagrange(60)
-splines(14)
+#splines(14)
 
